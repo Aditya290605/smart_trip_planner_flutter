@@ -1,0 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get_it/get_it.dart';
+import 'package:smart_trip_planner/core/common/user/cubit/user_data_cubit.dart';
+import 'package:smart_trip_planner/features/auth/data/data_source/auth_remote_data_soucre.dart';
+import 'package:smart_trip_planner/features/auth/data/repository/auth_repository_impl.dart';
+import 'package:smart_trip_planner/features/auth/domain/repository/auth_repository.dart';
+import 'package:smart_trip_planner/features/auth/domain/usercase/sign_in_usecase.dart';
+import 'package:smart_trip_planner/features/auth/domain/usercase/sign_up_usecase.dart';
+import 'package:smart_trip_planner/features/auth/domain/usercase/user_auth_usecase.dart';
+import 'package:smart_trip_planner/features/auth/presentation/bloc/auth_bloc_bloc.dart';
+part 'init_dependencies.main.dart';

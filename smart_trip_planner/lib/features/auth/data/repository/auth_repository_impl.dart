@@ -15,8 +15,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<UserProfile, Failures>> signInWithEmailAndPass({
     required String email,
     required String password,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    try {
+      final res = await _dataSoucre.signInWithEmailAndPass(
+        email: email,
+        pass: password,
+      );
+      return Left(res);
+    } on ServerException catch (e) {
+      return Right(Failures(error: e.exception));
+    } catch (e) {
+      throw ServerException(exception: e.toString());
+    }
   }
 
   @override
