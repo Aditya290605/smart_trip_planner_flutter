@@ -33,8 +33,22 @@ class RemoteDataSourceImpl extends RemoteDataSoucre {
   Future<UserModel> signInWithEmailAndPass({
     required String email,
     required String pass,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    try {
+      final res = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: pass,
+      );
+      if (res.user == null) {
+        throw ServerException(exception: "Falied to fetch user");
+      }
+
+      final uid = _auth.currentUser!.uid;
+      final doc = await _firestore.collection('users').doc(uid).get();
+      return UserModel.fromMap(doc.data()!);
+    } catch (e) {
+      throw ServerException(exception: e.toString());
+    }
   }
 
   @override
@@ -72,7 +86,6 @@ class RemoteDataSourceImpl extends RemoteDataSoucre {
       if (_auth.currentUser != null) {
         final uid = _auth.currentUser!.uid;
         final doc = await _firestore.collection('users').doc(uid).get();
-        debugPrint("${doc}");
 
         if (doc.exists && doc.data() != null) {
           debugPrint('nothing feathed');
