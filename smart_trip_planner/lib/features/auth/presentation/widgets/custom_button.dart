@@ -13,19 +13,22 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: AppColors.primaryDark,
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge!.copyWith(color: Colors.white),
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        height: 50,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: AppColors.primaryDark,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge!.copyWith(color: Colors.white),
+          ),
         ),
       ),
     );

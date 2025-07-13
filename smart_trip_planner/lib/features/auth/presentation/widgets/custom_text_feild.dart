@@ -31,6 +31,12 @@ class _CustomInputFieldState extends State<CustomInputField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter ${widget.hintText}';
+        }
+        return null;
+      },
       controller: widget.controller,
       obscureText: widget.isPassword && _obscureText,
       decoration: InputDecoration(

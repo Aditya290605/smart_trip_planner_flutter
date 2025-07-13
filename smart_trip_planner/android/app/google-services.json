@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "413614919582",
+    "project_id": "itinera-ai-3df91",
+    "storage_bucket": "itinera-ai-3df91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413614919582:android:0b931db5cef125e6db508f",
+        "android_client_info": {
+          "package_name": "com.example.smart_trip_planner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_7WrBSjLfj4dr7r7PWes3vVSBRCTpH_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
