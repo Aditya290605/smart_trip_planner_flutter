@@ -1,0 +1,1 @@
+# smart_trip_planner_flutter
