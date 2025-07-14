@@ -11,4 +11,8 @@ class AppColors {
   static const Color googleBlue = Color(0xFF4285F4);
   static const Color borderGreadient1 = Color.fromRGBO(59, 171, 140, 1);
   static const Color borderGreadient2 = Color.fromRGBO(73, 164, 149, 1);
+  static const Color background = Color(0xFFF5F5F5);
+  static const Color greenProgress = Color(0xFF4CAF50);
+  static const Color redProgress = Color(0xFFFF5252);
+  static const Color logoutRed = Color(0xFFE53E3E);
 }
