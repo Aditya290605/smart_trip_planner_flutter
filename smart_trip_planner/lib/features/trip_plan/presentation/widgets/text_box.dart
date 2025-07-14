@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 
 class InputTextBox extends StatelessWidget {
-  const InputTextBox({super.key});
+  final TextEditingController controller;
+  const InputTextBox({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +18,7 @@ class InputTextBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           TextField(
+            controller: controller,
             style: Theme.of(
               context,
             ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),

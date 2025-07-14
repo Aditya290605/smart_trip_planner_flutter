@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_trip_planner/core/constants/dummy_data.dart';
+import 'package:smart_trip_planner/core/services/gemini_service.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/features/auth/presentation/bloc/auth_bloc_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/profile_page.dart';
@@ -9,8 +10,15 @@ import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/itine
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/primary_button.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/text_box.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -61,12 +69,16 @@ class HomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 30),
 
-                      InputTextBox(),
+                      InputTextBox(controller: controller),
                       const SizedBox(height: 30),
 
                       PrimaryButton(
                         label: 'Create My Itinerary',
-                        onPressed: () {
+                        onPressed: () async {
+                          final res = await fetchItineraryFromLLM(
+                            prompt: controller.text.trim(),
+                          );
+                          debugPrint("${res}");
                           Navigator.push(
                             context,
                             MaterialPageRoute(
