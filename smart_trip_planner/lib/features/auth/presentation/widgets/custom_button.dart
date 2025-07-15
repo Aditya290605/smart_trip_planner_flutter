@@ -19,7 +19,7 @@ class PrimaryButton extends StatelessWidget {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30), // rounded corners
+          borderRadius: BorderRadius.circular(15), // rounded corners
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
