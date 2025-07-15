@@ -6,6 +6,7 @@ import 'package:smart_trip_planner/core/theme/app_theme.dart';
 
 import 'package:smart_trip_planner/features/auth/presentation/bloc/auth_bloc_bloc.dart';
 import 'package:smart_trip_planner/features/auth/presentation/pages/sing_up_page.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/home_page.dart';
 import 'package:smart_trip_planner/init_dependencies.dart';
 
@@ -14,11 +15,13 @@ void main() async {
   await Firebase.initializeApp();
   await initDependencies();
   initAuth();
+  initTrip();
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => serviceLocator<UserDataCubit>()),
         BlocProvider(create: (_) => serviceLocator<AuthBlocBloc>()),
+        BlocProvider(create: (_) => serviceLocator<ItineraryBloc>()),
       ],
       child: const MyApp(),
     ),

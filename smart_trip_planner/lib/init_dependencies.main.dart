@@ -46,3 +46,19 @@ void initAuth() {
     ),
   );
 }
+
+void initTrip() {
+  const apiKey = geminiAPIKey;
+
+  serviceLocator.registerLazySingleton<TripRemoteDatasource>(
+    () => TripRemoteDatasourceImpl(apiKey),
+  );
+  serviceLocator.registerLazySingleton<ItineraryRepository>(
+    () => ItineraryRepositoryImpl(serviceLocator()),
+  );
+  serviceLocator.registerLazySingleton<GenerateItineraryUseCase>(
+    () => GenerateItineraryUseCase(serviceLocator()),
+  );
+
+  serviceLocator.registerFactory(() => ItineraryBloc(serviceLocator()));
+}
