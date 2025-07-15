@@ -1,10 +1,25 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/features/auth/presentation/widgets/custom_button.dart';
+import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_state.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/chat_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class ItineraryCreatedScreen extends StatelessWidget {
-  const ItineraryCreatedScreen({super.key});
+class ItineraryCreatedScreen extends StatefulWidget {
+  final String initialPrompt;
+
+  const ItineraryCreatedScreen({super.key, required this.initialPrompt});
+
+  @override
+  State<ItineraryCreatedScreen> createState() => _ItineraryCreatedScreenState();
+}
+
+class _ItineraryCreatedScreenState extends State<ItineraryCreatedScreen> {
+  ItineraryEntity? initialResponse;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +84,7 @@ class ItineraryCreatedScreen extends StatelessWidget {
               // Main itinerary card
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -77,65 +92,95 @@ class ItineraryCreatedScreen extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.08),
                       blurRadius: 12,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Day 1: Arrival in Bali & Settle in Ubud',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    _buildBulletPoint(
-                      'Morning: Arrive in Bali, Denpasar Airport.',
-                    ),
-                    _buildBulletPoint(
-                      'Transfer: Private driver to Ubud (around 1.5 hours).',
-                    ),
-                    _buildBulletPoint(
-                      'Accommodation: Check-in at a peaceful boutique hotel or villa in Ubud (e.g., Ubud Aura Retreat).',
-                    ),
-                    _buildBulletPoint(
-                      'Afternoon: Explore Ubud\'s local area, walk around the tranquil rice terraces at Tegallalang.',
-                    ),
-                    _buildBulletPoint(
-                      'Evening: Dinner at Locavore (known for farm-to-table dishes in peaceful environment)',
-                    ),
-                    SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        // Open in maps functionality
-                      },
-                      child: Row(
+                child: BlocBuilder<ItineraryBloc, ItineraryState>(
+                  builder: (context, state) {
+                    if (state is ItineraryLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is ItineraryError) {
+                      return Center(child: Text('Error: ${state.message}'));
+                    } else if (state is ItineraryLoaded) {
+                      initialResponse = state.itinerary;
+
+                      final day = state.itinerary.days.first;
+                      final summary = day.summary;
+                      final title = state.itinerary.title;
+                      final items = day.items;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.location_on, color: Colors.blue, size: 16),
-                          SizedBox(width: 6),
                           Text(
-                            'Open in maps',
+                            'Day 1: $summary',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ▪️ Dynamic bullet points
+                          ...items.map(
+                            (item) => _buildBulletPoint(
+                              '${item.time}: ${item.activity}',
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // ▪️ Open in Maps (uses the first location in the list)
+                          if (items.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                final loc = items.first.location;
+                                final mapUrl =
+                                    'https://www.google.com/maps/search/?api=1&query=$loc';
+                                launchUrl(Uri.parse(mapUrl));
+                              },
+                              child: Row(
+                                children: const [
+                                  Icon(
+                                    Icons.location_on,
+                                    color: Colors.blue,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Open in maps',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          // ▪️ Optional trip title (or any fixed detail)
+                          Text(
+                            title,
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: Colors.grey[600],
                               fontSize: 15,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Mumbai to Bali, Indonesia • 11hrs 5mins',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 15),
-                    ),
-                  ],
+                      );
+                    }
+
+                    // Initial state (e.g., before any search)
+                    return const SizedBox();
+                  },
                 ),
               ),
+
               SizedBox(height: 28),
               // Follow up button
               PrimaryButton(
@@ -144,7 +189,12 @@ class ItineraryCreatedScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => TravelChatScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => TravelChatScreen(
+                        initialPrompt: widget.initialPrompt,
+                        initialResponse: initialResponse!,
+                      ),
+                    ),
                   );
                 },
               ),

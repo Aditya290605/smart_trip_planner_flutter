@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_trip_planner/core/constants/dummy_data.dart';
-import 'package:smart_trip_planner/core/services/gemini_service.dart';
+
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/features/auth/presentation/bloc/auth_bloc_bloc.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/profile_page.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/response_page.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/itineries_card.dart';
@@ -75,14 +77,19 @@ class _HomePageState extends State<HomePage> {
                       PrimaryButton(
                         label: 'Create My Itinerary',
                         onPressed: () async {
-                          final res = await fetchItineraryFromLLM(
-                            prompt: controller.text.trim(),
+                          context.read<ItineraryBloc>().add(
+                            GenerateItineraryEvent(
+                              userInput: controller.text.trim(),
+                              previousJson: '{}',
+                              chatHistory: [],
+                            ),
                           );
-                          debugPrint("${res}");
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ItineraryCreatedScreen(),
+                              builder: (context) => ItineraryCreatedScreen(
+                                initialPrompt: controller.text.trim(),
+                              ),
                             ),
                           );
                         },
