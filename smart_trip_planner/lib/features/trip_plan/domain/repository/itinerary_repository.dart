@@ -6,4 +6,6 @@ abstract class ItineraryRepository {
     String previousJson,
     List<Map<String, String?>> chatHistory,
   );
+
+  Future<void> saveItineraryOffline(ItineraryEntity entity);
 }

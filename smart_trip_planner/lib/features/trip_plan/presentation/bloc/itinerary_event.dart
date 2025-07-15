@@ -1,3 +1,4 @@
+import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/chat_page.dart';
 
 abstract class ItineraryEvent {}
@@ -24,4 +25,10 @@ class RefineItineraryEvent extends ItineraryEvent {
     required this.userMessage,
     required this.previousJson,
   });
+}
+
+class SaveItineraryOfflineEvent extends ItineraryEvent {
+  final ItineraryEntity itinerary;
+
+  SaveItineraryOfflineEvent({required this.itinerary});
 }

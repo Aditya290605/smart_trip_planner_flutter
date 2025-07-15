@@ -2,13 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
 import 'package:smart_trip_planner/core/theme/app_color.dart';
+import 'package:smart_trip_planner/core/utils/userdata.dart';
+import 'package:smart_trip_planner/features/trip_plan/data/repository/tokens_limit.dart';
 import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_state.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/ai_loading.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/chat_input_box.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/error_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TravelChatScreen extends StatefulWidget {
@@ -40,18 +43,35 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userInitial = context.watch<UserProvider>().userName;
+
     return BlocListener<ItineraryBloc, ItineraryState>(
       listener: (context, state) {
         if (state is ItineraryLoaded) {
+          GeminiUsageTracker().track(
+            prompt: widget.initialPrompt,
+            response: state.itinerary.toString(),
+          );
+
           setState(() {
             messages.add(
               ChatMessage(role: 'assistant', entity: state.itinerary),
             );
           });
         } else if (state is ItineraryError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          ErrorCard(
+            message: state.message,
+            isChat: false,
+            onRetry: () {
+              context.read<ItineraryBloc>().add(
+                RefineItineraryEvent(
+                  history: messages,
+                  userMessage: messages.last.text!,
+                  previousJson: _getLastAssistantJson(),
+                ),
+              );
+            },
+          );
         }
       },
       child: Scaffold(
@@ -61,8 +81,8 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
-            '7 days in Bali...',
+          title: Text(
+            widget.initialPrompt,
             style: TextStyle(
               color: Colors.black,
               fontSize: 18,
@@ -72,10 +92,13 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
           actions: [
             Container(
               margin: const EdgeInsets.only(right: 20),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 backgroundColor: AppColors.primaryDark,
                 radius: 18,
-                child: Text('S', style: TextStyle(color: Colors.white)),
+                child: Text(
+                  userInitial.isNotEmpty ? userInitial[0].toUpperCase() : '?',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -92,14 +115,24 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
                     itemBuilder: (context, index) {
                       if (index == messages.length &&
                           state is ItineraryLoading) {
-                        return const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Center(
-                            child: Text("Itinera AI is thinking..."),
-                          ),
-                        );
+                        return const AiLoading();
                       }
-                      return _buildCenteredMessage(messages[index]);
+                      ItineraryEntity? latestItineray;
+
+                      if (state is ItineraryLoaded) {
+                        latestItineray = state.itinerary;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: _buildCenteredMessage(
+                          messages[index],
+                          userInitial.isNotEmpty
+                              ? userInitial[0].toUpperCase()
+                              : 'S',
+                          latestItineray!,
+                        ),
+                      );
                     },
                   );
                 },
@@ -128,7 +161,11 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
     );
   }
 
-  Widget _buildCenteredMessage(ChatMessage message) {
+  Widget _buildCenteredMessage(
+    ChatMessage message,
+    String userInitial,
+    ItineraryEntity entity,
+  ) {
     final isUser = message.role == 'user';
     return Center(
       child: Container(
@@ -139,7 +176,7 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: const Color.fromARGB(255, 214, 213, 213),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -156,14 +193,16 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
                       ? AppColors.primaryDark
                       : Colors.orange,
                   radius: 16,
-                  child: Text(
-                    isUser ? 'S' : 'AI',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: isUser
+                      ? Text(
+                          userInitial,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : Icon(size: 18, Icons.chat_sharp),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -194,7 +233,11 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
               _buildAssistantActions(
                 onCopy: () {},
                 onRegenerate: () {},
-                onSaveOffline: () {},
+                onSaveOffline: () {
+                  context.read<ItineraryBloc>().add(
+                    SaveItineraryOfflineEvent(itinerary: entity),
+                  );
+                },
               ),
             ],
           ],
@@ -297,11 +340,6 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
   }
 
   Widget _buildMapCard(ItineraryEntity itinerary) {
-    final firstLocation = itinerary.days.first.items.first.location;
-
-    final parts = firstLocation.split(',');
-    final hasLatLng = parts.length == 2;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -313,31 +351,11 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () async {
-              if (hasLatLng) {
-                final lat = parts[0].trim();
-                final lng = parts[1].trim();
-                final url =
-                    'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(
-                    Uri.parse(url),
-                    mode: LaunchMode.externalApplication,
-                  );
-                } else {
-                  throw 'Could not launch $url';
-                }
-              } else {
-                // Fallback: search by location name
-                final encoded = Uri.encodeComponent(firstLocation);
-                final fallbackUrl =
-                    'https://www.google.com/maps/search/?api=1&query=$encoded';
-                await launchUrl(
-                  Uri.parse(fallbackUrl),
-                  mode: LaunchMode.externalApplication,
-                );
-              }
+            onTap: () {
+              final loc = itinerary.days.first.items.first.location;
+              final mapUrl =
+                  'https://www.google.com/maps/search/?api=1&query=$loc';
+              launchUrl(Uri.parse(mapUrl));
             },
             child: const Text(
               "📍 Open in maps",
@@ -366,54 +384,71 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: TextButton.icon(
               onPressed: onCopy,
               style: TextButton.styleFrom(
-                backgroundColor: Colors.grey[200],
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                iconColor: Colors.grey,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               icon: const Icon(Icons.copy, size: 16),
-              label: const Text("Copy"),
+              label: Text(
+                "Copy",
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+
           Expanded(
             child: TextButton.icon(
               onPressed: onSaveOffline,
               style: TextButton.styleFrom(
-                backgroundColor: Colors.grey[200],
-                foregroundColor: Colors.black,
+                iconColor: Colors.grey,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               icon: const Icon(Icons.download, size: 16),
-              label: const Text("Save"),
+              label: Text(
+                "Save",
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+
           Expanded(
             child: TextButton.icon(
               onPressed: onRegenerate,
               style: TextButton.styleFrom(
-                backgroundColor: Colors.grey[200],
-                foregroundColor: Colors.black,
+                iconColor: Colors.grey,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text("Regenerate"),
+              label: Text(
+                "Regenerate",
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
           ),
+          const SizedBox(width: 12),
         ],
       ),
     );

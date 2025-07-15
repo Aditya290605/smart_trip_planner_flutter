@@ -15,3 +15,10 @@ class ItineraryError extends ItineraryState {
   final String message;
   ItineraryError(this.message);
 }
+
+class ItinerarySavedOffline extends ItineraryState {}
+
+class ItinerarySaveFailed extends ItineraryState {
+  final String message;
+  ItinerarySaveFailed(this.message);
+}

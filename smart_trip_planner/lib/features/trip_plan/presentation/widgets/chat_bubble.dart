@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
+import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
 
 class ItineraryDisplay extends StatelessWidget {
   final ItineraryEntity itinerary;
@@ -153,7 +156,9 @@ class ItineraryDisplay extends StatelessWidget {
         ),
         TextButton.icon(
           onPressed: () {
-            // TODO: Implement save offline logic
+            context.read<ItineraryBloc>().add(
+              SaveItineraryOfflineEvent(itinerary: itinerary),
+            );
           },
           icon: const Icon(Icons.download_for_offline, size: 18),
           label: const Text("Save Offline"),

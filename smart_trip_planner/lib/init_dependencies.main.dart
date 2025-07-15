@@ -60,5 +60,7 @@ void initTrip() {
     () => GenerateItineraryUseCase(serviceLocator()),
   );
 
-  serviceLocator.registerFactory(() => ItineraryBloc(serviceLocator()));
+  serviceLocator.registerFactory(
+    () => ItineraryBloc(serviceLocator(), serviceLocator()),
+  );
 }

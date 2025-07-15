@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smart_trip_planner/core/constants/dummy_data.dart';
+
+import 'package:hive_flutter/adapters.dart';
 
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/features/auth/presentation/bloc/auth_bloc_bloc.dart';
+import 'package:smart_trip_planner/features/trip_plan/data/model/itinerary_hive_model.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/profile_page.dart';
@@ -104,12 +106,28 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 20),
 
-                      ListView.builder(
-                        itemCount: title.length,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          return ItineriesCard(title: title[index]);
+                      ValueListenableBuilder(
+                        valueListenable: Hive.box<ItineraryHiveModel>(
+                          'itineraries',
+                        ).listenable(),
+                        builder: (context, Box<ItineraryHiveModel> box, _) {
+                          final itineraries = box.values.toList();
+
+                          if (itineraries.isEmpty) {
+                            return const Center(
+                              child: Text("No offline itineraries saved."),
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: itineraries.length,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              final itinerary = itineraries[index];
+                              return ItineriesCard(title: itinerary.title);
+                            },
+                          );
                         },
                       ),
                     ],
