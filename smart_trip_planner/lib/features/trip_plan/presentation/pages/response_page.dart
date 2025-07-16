@@ -16,8 +16,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ItineraryCreatedScreen extends StatefulWidget {
   final String initialPrompt;
+  final ItineraryEntity? offlineEntity;
 
-  const ItineraryCreatedScreen({super.key, required this.initialPrompt});
+  const ItineraryCreatedScreen({
+    super.key,
+    required this.initialPrompt,
+    this.offlineEntity,
+  });
 
   @override
   State<ItineraryCreatedScreen> createState() => _ItineraryCreatedScreenState();
@@ -29,6 +34,75 @@ class _ItineraryCreatedScreenState extends State<ItineraryCreatedScreen> {
   @override
   Widget build(BuildContext context) {
     final userInitial = context.watch<UserProvider>().userName;
+    // If offlineEntity is provided, always show it
+    if (widget.offlineEntity != null) {
+      final itinerary = widget.offlineEntity!;
+      return Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Offline Itinerary',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 20),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          itinerary.title,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text('🏝️', style: TextStyle(fontSize: 26)),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 32),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: _buildOfflineCardContent(itinerary),
+                ),
+                SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -200,6 +274,9 @@ class _ItineraryCreatedScreenState extends State<ItineraryCreatedScreen> {
 
       initialResponse = state.itinerary;
 
+      if (state.itinerary.days.isEmpty) {
+        return const Center(child: Text('No days found in this itinerary.'));
+      }
       final day = state.itinerary.days.first;
       final summary = day.summary;
       final title = state.itinerary.title;
@@ -218,7 +295,7 @@ class _ItineraryCreatedScreenState extends State<ItineraryCreatedScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
+            if (items.isEmpty) const Text('No activities found for this day.'),
             ...items.map(
               (item) => _buildBulletPoint('${item.time}: ${item.activity}'),
             ),
@@ -261,6 +338,58 @@ class _ItineraryCreatedScreenState extends State<ItineraryCreatedScreen> {
     }
 
     return const SizedBox();
+  }
+
+  Widget _buildOfflineCardContent(ItineraryEntity itinerary) {
+    final day = itinerary.days.isNotEmpty ? itinerary.days.first : null;
+    final summary = day?.summary ?? '';
+    final title = itinerary.title;
+    final items = day?.items ?? [];
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Day 1: $summary',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map(
+            (item) => _buildBulletPoint('${item.time}: ${item.activity}'),
+          ),
+          const SizedBox(height: 20),
+          if (items.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                final loc = items.first.location;
+                final mapUrl =
+                    'https://www.google.com/maps/search/?api=1&query=$loc';
+                launchUrl(Uri.parse(mapUrl));
+              },
+              child: Row(
+                children: const [
+                  Icon(Icons.location_on, color: Colors.blue, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Open in maps',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+        ],
+      ),
+    );
   }
 
   Widget _buildBulletPoint(String text) {

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/core/utils/userdata.dart';
 import 'package:smart_trip_planner/features/trip_plan/data/repository/tokens_limit.dart';
+import 'package:smart_trip_planner/features/trip_plan/data/tts_stt_service.dart';
 import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
@@ -31,6 +32,7 @@ class TravelChatScreen extends StatefulWidget {
 class _TravelChatScreenState extends State<TravelChatScreen> {
   final List<ChatMessage> messages = [];
   final TextEditingController _messageController = TextEditingController();
+  final TtsSttService _ttsSttService = TtsSttService();
 
   @override
   void initState() {
@@ -123,14 +125,26 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
                         latestItineray = state.itinerary;
                       }
 
+                      // Defensive: If latestItineray is null, show a placeholder
+                      if (index >= messages.length) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final msg = messages[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: _buildCenteredMessage(
-                          messages[index],
+                          msg,
                           userInitial.isNotEmpty
                               ? userInitial[0].toUpperCase()
-                              : 'S',
-                          latestItineray!,
+                              : '?',
+                          msg.entity ??
+                              ItineraryEntity(
+                                title: '',
+                                startDate: '',
+                                endDate: '',
+                                days: [],
+                              ),
                         ),
                       );
                     },
@@ -212,13 +226,13 @@ class _TravelChatScreenState extends State<TravelChatScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            message.entity != null
-                ? _buildItineraryContent(message.entity!)
+            message.entity != null && entity.days.isNotEmpty
+                ? _buildItineraryContent(entity)
                 : Text(
-                    message.text ?? '',
+                    message.text ?? 'No itinerary data.',
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
-            if (message.entity != null) ...[
+            if (message.entity != null && entity.days.isNotEmpty) ...[
               const SizedBox(height: 16),
               BlocBuilder<ItineraryBloc, ItineraryState>(
                 builder: (context, state) {

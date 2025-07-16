@@ -1,78 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:smart_trip_planner/core/theme/app_color.dart';
+import 'package:smart_trip_planner/features/trip_plan/data/tts_stt_service.dart';
 
-class ChatInputBox extends StatelessWidget {
+class ChatInputBox extends StatefulWidget {
   final TextEditingController messageController;
-  final void Function(String)? onSend;
-
+  final Function(String) onSend;
   const ChatInputBox({
-    super.key,
+    Key? key,
     required this.messageController,
     required this.onSend,
-  });
+  }) : super(key: key);
+
+  @override
+  State<ChatInputBox> createState() => _ChatInputBoxState();
+}
+
+class _ChatInputBoxState extends State<ChatInputBox> {
+  final TtsSttService _ttsSttService = TtsSttService();
+  bool _isListening = false;
+
+  @override
+  void dispose() {
+    _ttsSttService.stopListening();
+    super.dispose();
+  }
+
+  void _toggleListening() async {
+    if (_isListening) {
+      await _ttsSttService.stopListening();
+      setState(() => _isListening = false);
+    } else {
+      final available = await _ttsSttService.initSpeech();
+      if (available) {
+        setState(() => _isListening = true);
+        await _ttsSttService.startListening((text) {
+          widget.messageController.text = text;
+          setState(() {});
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Row(
-        children: [
-          // Input + mic in one rounded border
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primary),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Follow up to refine',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                      ),
-                      onSubmitted: onSend,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => onSend?.call(messageController.text),
-                    icon: Icon(Icons.mic, color: Colors.grey[700], size: 22),
-                    tooltip: "Speak",
-                  ),
-                ],
-              ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: widget.messageController,
+            decoration: const InputDecoration(
+              hintText: 'Type your message...',
+              border: OutlineInputBorder(),
             ),
           ),
-
-          const SizedBox(width: 12),
-
-          // Send button separately styled
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.primaryDark,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              onPressed: () => onSend?.call(messageController.text),
-              icon: const Icon(Icons.send, color: Colors.white, size: 20),
-              tooltip: "Send",
-            ),
+        ),
+        IconButton(
+          icon: Icon(
+            _isListening ? Icons.mic : Icons.mic_none,
+            color: _isListening ? Colors.red : Colors.black,
           ),
-        ],
-      ),
+          onPressed: _toggleListening,
+        ),
+        IconButton(
+          icon: const Icon(Icons.send),
+          onPressed: () {
+            widget.onSend(widget.messageController.text);
+          },
+        ),
+      ],
     );
   }
 }
