@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:smart_trip_planner/core/theme/app_color.dart';
 import 'package:smart_trip_planner/core/utils/userdata.dart';
 import 'package:smart_trip_planner/features/trip_plan/data/repository/tokens_limit.dart';
-import 'package:smart_trip_planner/features/trip_plan/data/tts_stt_service.dart';
+
 import 'package:smart_trip_planner/features/trip_plan/domain/entities/ltinerary_entity.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_event.dart';
@@ -32,7 +32,6 @@ class TravelChatScreen extends StatefulWidget {
 class _TravelChatScreenState extends State<TravelChatScreen> {
   final List<ChatMessage> messages = [];
   final TextEditingController _messageController = TextEditingController();
-  final TtsSttService _ttsSttService = TtsSttService();
 
   @override
   void initState() {

@@ -17,7 +17,6 @@ import 'package:smart_trip_planner/features/trip_plan/presentation/pages/offline
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/itineries_card.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/primary_button.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/text_box.dart';
-import 'package:smart_trip_planner/features/trip_plan/data/tts_stt_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,8 +32,6 @@ class _HomePageState extends State<HomePage> {
   late final Stream<List<ConnectivityResult>> _connectivityStream;
   bool _dialogShown = false;
   bool _firstBuild = true;
-  final TtsSttService _ttsSttService = TtsSttService();
-  bool _isListening = false;
 
   @override
   void initState() {
@@ -170,37 +167,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 30),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: controller,
-                              decoration: const InputDecoration(
-                                hintText: 'What’s your vision for this trip?',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(_isListening ? Icons.mic : Icons.mic_none, color: _isListening ? Colors.red : Colors.black),
-                            onPressed: () async {
-                              if (_isListening) {
-                                await _ttsSttService.stopListening();
-                                setState(() => _isListening = false);
-                              } else {
-                                final available = await _ttsSttService.initSpeech();
-                                if (available) {
-                                  setState(() => _isListening = true);
-                                  await _ttsSttService.startListening((text) {
-                                    controller.text = text;
-                                    setState(() {});
-                                  });
-                                }
-                              }
-                            },
-                          ),
-                        ],
-                      ),
+                      InputTextBox(controller: controller),
                       const SizedBox(height: 30),
 
                       PrimaryButton(

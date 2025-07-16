@@ -1,72 +1,80 @@
 import 'package:flutter/material.dart';
-import 'package:smart_trip_planner/features/trip_plan/data/tts_stt_service.dart';
+import 'package:smart_trip_planner/core/theme/app_color.dart';
 
-class ChatInputBox extends StatefulWidget {
+class ChatInputBox extends StatelessWidget {
   final TextEditingController messageController;
   final Function(String) onSend;
+
   const ChatInputBox({
-    Key? key,
+    super.key,
     required this.messageController,
     required this.onSend,
-  }) : super(key: key);
-
-  @override
-  State<ChatInputBox> createState() => _ChatInputBoxState();
-}
-
-class _ChatInputBoxState extends State<ChatInputBox> {
-  final TtsSttService _ttsSttService = TtsSttService();
-  bool _isListening = false;
-
-  @override
-  void dispose() {
-    _ttsSttService.stopListening();
-    super.dispose();
-  }
-
-  void _toggleListening() async {
-    if (_isListening) {
-      await _ttsSttService.stopListening();
-      setState(() => _isListening = false);
-    } else {
-      final available = await _ttsSttService.initSpeech();
-      if (available) {
-        setState(() => _isListening = true);
-        await _ttsSttService.startListening((text) {
-          widget.messageController.text = text;
-          setState(() {});
-        });
-      }
-    }
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: widget.messageController,
-            decoration: const InputDecoration(
-              hintText: 'Type your message...',
-              border: OutlineInputBorder(),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        20,
+      ), // left, top, right, bottom
+      child: Row(
+        children: [
+          // Input box with mic icon
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primaryDark),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      style: const TextStyle(fontSize: 16),
+                      decoration: const InputDecoration(
+                        hintText: 'Follow up to refine',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.mic, color: AppColors.primaryDark),
+                    onPressed: () {
+                      // Add STT logic later if needed
+                    },
+                    tooltip: "Voice Input",
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        IconButton(
-          icon: Icon(
-            _isListening ? Icons.mic : Icons.mic_none,
-            color: _isListening ? Colors.red : Colors.black,
+
+          const SizedBox(width: 10),
+
+          // Send button
+          Container(
+            decoration: const BoxDecoration(
+              color: AppColors.primaryDark,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.send, color: Colors.white),
+              onPressed: () {
+                onSend(messageController.text);
+              },
+              tooltip: "Send",
+            ),
           ),
-          onPressed: _toggleListening,
-        ),
-        IconButton(
-          icon: const Icon(Icons.send),
-          onPressed: () {
-            widget.onSend(widget.messageController.text);
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:smart_trip_planner/features/trip_plan/presentation/widgets/itine
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/response_page.dart';
 
 class OfflineSavedPage extends StatelessWidget {
-  const OfflineSavedPage({Key? key}) : super(key: key);
+  const OfflineSavedPage({super.key});
 
   @override
   Widget build(BuildContext context) {
