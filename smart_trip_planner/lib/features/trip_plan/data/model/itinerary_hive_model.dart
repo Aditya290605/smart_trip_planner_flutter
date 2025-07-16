@@ -73,3 +73,24 @@ ItineraryHiveModel mapToHiveModel(ItineraryEntity entity) {
     }).toList(),
   );
 }
+
+ItineraryEntity mapToEntity(ItineraryHiveModel hiveModel) {
+  return ItineraryEntity(
+    title: hiveModel.title,
+    startDate: hiveModel.startDate,
+    endDate: hiveModel.endDate,
+    days: hiveModel.days.map((day) {
+      return ItineraryDayEntity(
+        date: '', // Hive model does not store date
+        summary: day.summary,
+        items: day.items.map((item) {
+          return ItineraryItemEntity(
+            time: item.time,
+            activity: item.activity,
+            location: item.location,
+          );
+        }).toList(),
+      );
+    }).toList(),
+  );
+}
