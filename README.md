@@ -102,6 +102,9 @@ graph TB
     H --> I
     I --> J[UI Update]
 ```
+---
+##  App demo video - [Demo Video](https://drive.google.com/file/d/1YItYmiutPvxOu-X87uroMtno845TLOSk/view?usp=sharing)
+---
 
 ## 📱 Screenshots
 
@@ -349,8 +352,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </div>
 
 ## 🔗 Links
-
-- [Demo Video](https://drive.google.com/file/d/1YItYmiutPvxOu-X87uroMtno845TLOSk/view?usp=sharing)
 - [Summary report](https://drive.google.com/file/d/19i-v-FicbmSTgmGkf6PfPL-YRBREvYGV/view?usp=sharing)
 
 
