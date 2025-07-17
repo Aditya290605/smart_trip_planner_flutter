@@ -1,4 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -13,11 +15,15 @@ import 'package:smart_trip_planner/features/auth/presentation/pages/sing_up_page
 import 'package:smart_trip_planner/features/trip_plan/data/model/itinerary_hive_model.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/bloc/itinerary_bloc.dart';
 import 'package:smart_trip_planner/features/trip_plan/presentation/pages/home_page.dart';
+import 'package:smart_trip_planner/firebase_options.dart';
 import 'package:smart_trip_planner/init_dependencies.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  if (kIsWeb) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.web);
+  }
   await initDependencies();
   initAuth();
   initTrip();

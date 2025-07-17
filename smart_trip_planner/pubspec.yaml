@@ -50,8 +50,8 @@ dependencies:
   hive_flutter: ^1.1.0
   provider: ^6.1.5
   connectivity_plus: ^6.1.4
-  speech_to_text: ^7.2.0
-  flutter_tts: ^4.2.3
+  
+
 
 dev_dependencies:
   flutter_test:
